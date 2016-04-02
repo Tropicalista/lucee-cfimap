@@ -16,4 +16,4 @@
 
 ## Installation
 - Save to Lucee context directory ("context/library/tag")
-- you will need to restart Lucee when you have added these files (and after editting a tag)
+- you will need to restart Lucee when you have added these files (and after editing a tag)
