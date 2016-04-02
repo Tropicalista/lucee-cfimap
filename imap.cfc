@@ -198,11 +198,9 @@ component output="false" displayname="cfimap"  {
 				){
 					throw( type="application", message="Attribute validation error", detail="It has an invalid attribute combination." );
 				}
-				arguments.caller[arguments.attributes.name] = variables.imap.getHeaderOnly( arguments.caller[arguments.attributes.connection], 
-					arguments.attributes.name, 
-					arguments.attributes.folder, 
-					arguments.attributes.startRow, 
-					arguments.attributes.maxRows 
+				arguments.caller[arguments.attributes.name] = variables.imap.getHeaderOnly( 
+					arguments.caller[arguments.attributes.connection], 
+					arguments.attributes.folder
 				);
 				break;
 

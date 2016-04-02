@@ -5,7 +5,7 @@ component output="false" accessors="true" singleton {
 	}
 
 	public function connect( 
-		required string connection, 
+		required connection, 
 		required string username, 
 		required string password, 
 		required string server, 
@@ -34,44 +34,43 @@ component output="false" accessors="true" singleton {
 		arguments.connection.close();
 	}
 
-	public function getHeaderOnly( required string connection, required string name, string folder = "INBOX", startRow = "", maxRows = "" ){
+	public function getHeaderOnly( required string connection, string folder = "INBOX", startRow = 1, maxRows ){
+		
 		var objFolder = getFolder( arguments.connection, arguments.folder );
 		objFolder.open( objFolder.READ_ONLY );
-		var messages = objFolder.getMessages( arguments.startRow, arguments.maxRows );
-		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
-		var recipient = CreateObject("Java", "javax.mail.Message$RecipientType");
 
-		var columns = "answered, attachmentfiles, attachments, body, cc, deleted, draft, flagged, from, header, lines, messageid, 
-		messagenumber, recent, replyto, rxddate, seen, size, subject, to, uid, user";
-		var list = QueryNew( columns );
-		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
-			queryAddRow(list);
-			querySetCell( list, "answered", messages[index].isSet(flag.ANSWERED) );
-			querySetCell( list, "attachmentfiles", messages[index].isSet(flag.ANSWERED) );
-			querySetCell( list, "attachments", messages[index].isSet(flag.ANSWERED) );
-			querySetCell( list, "body", messages[index].getContent() );
-			querySetCell( list, "cc", messages[index].getRecipients( recipient.CC ) );
-			querySetCell( list, "deleted", messages[index].isSet(flag.DELETED) );
-			querySetCell( list, "draft", messages[index].isSet(flag.DRAFT) );
-			querySetCell( list, "flagged", messages[index].isSet(flag.FLAGGED) );
-			querySetCell( list, "from", messages[index].getSender().toString() );
-			querySetCell( list, "header", ArrayToList( createObject( "java", "java.util.Collections" ).list( messages[index].getAllHeaderLines() ) ) );
-			//querySetCell( list, "htmlbody", messages[index].getContent().getBodyPart().getContent() );
-			querySetCell( list, "lines", messages[index].getLineCount() );
-			querySetCell( list, "messageid", messages[index].getMessageID() );
-			querySetCell( list, "messagenumber", messages[index].getMessageNumber() );
-			querySetCell( list, "recent", messages[index].isSet(flag.RECENT) );
-			querySetCell( list, "replyto", ArrayToList(messages[index].getReplyTo()) );
-			querySetCell( list, "rxddate", messages[index].getReceivedDate() );
-			querySetCell( list, "seen", messages[index].isSet(flag.SEEN) );
-			querySetCell( list, "size", messages[index].getSize() );
-			querySetCell( list, "subject", messages[index].getSubject() );
-			//querySetCell( list, "textbody", messages[index].getContent().getBodyPart().getContent() );
-			querySetCell( list, "to", ArrayToList(messages[index].getRecipients( recipient.TO )) );
-			querySetCell( list, "uid", messages[index].getMessageID() );
-			querySetCell( list, "user", messages[index].isSet(flag.USER) );
+		if( structKeyExists( arguments, "messageNumber") ){
+			var messages = objFolder.getMessage( arguments.messageNumber );
+		}elseif( !structKeyExists( arguments, "maxRows") ){
+			var messages = objFolder.getMessages();
+		}else{
+			var messages = objFolder.getMessages( arguments.startRow, arguments.startRow + arguments.maxRows );
 		}
-		objFolder.close( true );
+
+		var columns = "answered, cc, deleted, draft, flagged, from, header, lines, messageid, 
+		messagenumber, recent, replyto, rxddate, seen, sentDate, size, subject, to, uid";
+		var list = createQuery( messages, columns, false )
+
+		objFolder.close( false );
+		return list;
+
+	}
+
+	public function getAll( required connection, string folder = "INBOX", startRow = 1, maxRows = 1 ){
+		var objFolder = getFolder( arguments.connection, arguments.folder );
+		objFolder.open( objFolder.READ_ONLY );
+
+		if( structKeyExists( arguments, "messageNumber") ){
+			var messages = objFolder.getMessage( arguments.messageNumber );
+		}else{
+			var messages = objFolder.getMessages( arguments.startRow, arguments.maxRows );
+		}
+
+		var columns = "answered, attachmentfiles, attachments, body, cc, deleted, draft, flagged, from, header, htmlbody, lines, messageid, 
+		messagenumber, recent, replyto, rxddate, seen, size, subject, textbody, to, uid, user";
+		var list = createQuery( messages, columns, true )
+
+		objFolder.close( false );
 		return list;
 
 	}
@@ -99,7 +98,7 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public function markRead( required string connection, string folder ){
+	public function markRead( required connection, string folder ){
 
 		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
 		var objFolder = getFolder( arguments.connection, arguments.folder );
@@ -145,7 +144,7 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public function createFolder( required string connection, required string folder ){
+	public function createFolder( required connection, required string folder ){
 
 		var objFolder = getFolder( arguments.connection, arguments.folder );
 		objFolder.create( 3 );
@@ -154,7 +153,7 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public function renameFolder( required string connection, required string folder, required string newFolder ){
+	public function renameFolder( required connection, required string folder, required string newFolder ){
 
 		var objFolder = getFolder( arguments.connection, arguments.folder );
 		var objNewFolder = getFolder( arguments.connection, arguments.newFolder );
@@ -207,22 +206,26 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	private function createQuery( required string columns, required boolean all=false ){
+	private function createQuery( required messages, required string columns, required boolean all=false ){
 
-		var list = QueryNew( columns );
+		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
+		var recipient = CreateObject("Java", "javax.mail.Message$RecipientType");
+		
+		var list = QueryNew( arguments.columns );
+
 		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
 			queryAddRow(list);
 			querySetCell( list, "answered", messages[index].isSet(flag.ANSWERED) );
-			querySetCell( list, "attachmentfiles", messages[index].isSet(flag.ANSWERED) );
-			querySetCell( list, "attachments", messages[index].isSet(flag.ANSWERED) );
-			querySetCell( list, "body", messages[index].getContent() );
-			querySetCell( list, "cc", messages[index].getRecipients( recipient.CC ) );
+			if( arguments.all ) querySetCell( list, "attachmentfiles", messages[index].isSet(flag.ANSWERED) );
+			if( arguments.all ) querySetCell( list, "attachments", getFileName( messages[index] ) );
+			if( arguments.all ) querySetCell( list, "body", getHtmlBody( messages[index] ) );
+			querySetCell( list, "cc", IsArray( messages[index].getRecipients( recipient.CC ) ) ? ArrayToList(messages[index].getRecipients( recipient.TO )) : messages[index].getRecipients( recipient.TO ) );
 			querySetCell( list, "deleted", messages[index].isSet(flag.DELETED) );
 			querySetCell( list, "draft", messages[index].isSet(flag.DRAFT) );
 			querySetCell( list, "flagged", messages[index].isSet(flag.FLAGGED) );
 			querySetCell( list, "from", messages[index].getSender().toString() );
 			querySetCell( list, "header", ArrayToList( createObject( "java", "java.util.Collections" ).list( messages[index].getAllHeaderLines() ) ) );
-			querySetCell( list, "htmlbody", messages[index].getContent().getBodyPart(1).getContent() );
+			if( arguments.all ) querySetCell( list, "htmlbody", getHtmlBody( messages[index] ) );
 			querySetCell( list, "lines", messages[index].getLineCount() );
 			querySetCell( list, "messageid", messages[index].getMessageID() );
 			querySetCell( list, "messagenumber", messages[index].getMessageNumber() );
@@ -230,38 +233,95 @@ component output="false" accessors="true" singleton {
 			querySetCell( list, "replyto", ArrayToList(messages[index].getReplyTo()) );
 			querySetCell( list, "rxddate", messages[index].getReceivedDate() );
 			querySetCell( list, "seen", messages[index].isSet(flag.SEEN) );
+			querySetCell( list, "sentDate", messages[index].getSentDate() );
 			querySetCell( list, "size", messages[index].getSize() );
 			querySetCell( list, "subject", messages[index].getSubject() );
-			querySetCell( list, "textbody", messages[index].getContent().getBodyPart(0).getContent() );
-			querySetCell( list, "to", ArrayToList(messages[index].getRecipients( recipient.TO )) );
-			querySetCell( list, "uid", messages[index].getMessageID() );
-			querySetCell( list, "user", messages[index].isSet(flag.USER) );
+			if( arguments.all ) querySetCell( list, "textbody", getText( messages[index] ) );
+			querySetCell( list, "to", IsArray( messages[index].getRecipients( recipient.TO ) ) ? ArrayToList(messages[index].getRecipients( recipient.TO )) : messages[index].getRecipients( recipient.TO ) );
+			querySetCell( list, "uid", messages[index].getFolder().getUID( messages[index] ) );
+			if( arguments.all ) querySetCell( list, "user", messages[index].isSet(flag.USER) );
 		}
-		return objFolder;
+
+		return list;
 
 	}
 
 	private function getFileName( required message ){
-		var part = createObject("Java", "javax.mail.Part");
-		var multiPart = arguments.message.getContent().getCount();
-		var res = {};
-		dump(multiPart);
 
-		for ( i=0; i LT multiPart; i++ ) {
-
-			var bodyPart = arguments.message.getContent().getBodyPart( i );
-
-			if( compareNoCase( bodyPart.getDisposition(), part.ATTACHMENT ) ){
-				//res.attachments = bodyPart.getDataHandler().getFileName();
-				dump(bodyPart.getDataHandler());
-			}
-			if( compareNoCase( bodyPart.getDisposition(), part.INLINE ) ){
-				res.content = bodyPart.getContent().toString();
-			}
-
+		if( !hasAttachments(message) ){
+			return "";
 		}
-		dump(res);abort;
-		return res;
+
+		var p = createObject("Java", "javax.mail.Part");
+		var multiPart = arguments.message.getContent();
+		var fileName = [];
+
+		for ( i=0; i LT multiPart.getCount(); i++ ) {
+
+			var part = multiPart.getBodyPart( i );
+
+			dump(part.getDisposition());
+			if( !isNull( part.getDisposition() ) AND 
+				( compareNoCase( part.getDisposition(), p.ATTACHMENT ) || compareNoCase( part.getDisposition(), p.INLINE ) )
+			){
+				fileName.append( part.getFileName() );
+			}
+		}
+
+		return fileName.toList();
+
 	}
+
+	private function getText( required message ){
+
+        if ( message.isMimeType( "multipart/*" ) ) {
+
+			var multiPart = arguments.message.getContent();
+			
+			for ( i=0; i LT multiPart.getCount(); i++ ) {
+
+				var bodyPart = multiPart.getBodyPart( i );
+
+				if( bodyPart.isMimeType("text/plain") ){
+					return bodyPart.getContent();
+				}
+
+			}
+
+        }
+
+	}
+
+	private function getHtmlBody( required message ){
+
+        if ( message.isMimeType( "multipart/*" ) ) {
+
+			var multiPart = arguments.message.getContent();
+			
+			for ( i=0; i LT multiPart.getCount(); i++ ) {
+
+				var bodyPart = multiPart.getBodyPart( i );
+
+        		if ( bodyPart.isMimeType( "multipart/*" ) ) {
+        			return bodyPart.getContent().getBodyPart(1).getContent();
+        		}
+        		if ( bodyPart.isMimeType( "text/html" ) ) {
+        			return bodyPart.getContent();
+        		}
+
+			}
+
+        }
+
+	}
+
+    boolean function hasAttachments( msg ){
+		if ( msg.isMimeType("multipart/mixed") ){
+		    var mp = msg.getContent();
+		    if ( mp.getCount() > 1 )
+				return true;
+		}
+		return false;
+    }
 
 }
