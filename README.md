@@ -10,6 +10,8 @@
 - CreateFolder
 - DeleteFolder
 - RenameFolder
+- MarkRead
+- MoveMail
 
 
 ## Installation
