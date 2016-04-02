@@ -34,9 +34,9 @@ component output="false" accessors="true" singleton {
 		arguments.connection.close();
 	}
 
-	public function getHeaderOnly( required string connection, string folder = "INBOX", startRow, maxRows ){
+	public function getHeaderOnly( required string connection, required string name, string folder = "INBOX", startRow = "", maxRows = "" ){
 		var objFolder = getFolder( arguments.connection, arguments.folder );
-		objFolder.open( objFolder.READ_WRITE );
+		objFolder.open( objFolder.READ_ONLY );
 		var messages = objFolder.getMessages( arguments.startRow, arguments.maxRows );
 		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
 		var recipient = CreateObject("Java", "javax.mail.Message$RecipientType");
@@ -71,7 +71,7 @@ component output="false" accessors="true" singleton {
 			querySetCell( list, "uid", messages[index].getMessageID() );
 			querySetCell( list, "user", messages[index].isSet(flag.USER) );
 		}
-		objFolder.close( false );
+		objFolder.close( true );
 		return list;
 
 	}
@@ -109,12 +109,29 @@ component output="false" accessors="true" singleton {
 		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
 			messages[index].setFlag(flag.SEEN, true);
 		}
+		objFolder.close(true);
 
 		return messages;
 
 	}
 
-	public function moveMail( required string connection, required string newFolder, required string messageNumber, string folder ){
+	public function delete( required connection, string folder ){
+
+		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
+		var objFolder = getFolder( arguments.connection, arguments.folder );
+		objFolder.open( objFolder.READ_WRITE );
+		var messages = objFolder.getMessages();
+
+		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
+			messages[index].setFlag(flag.DELETED, true);
+		}
+		objFolder.close(true);
+
+		return messages;
+
+	}
+
+	public function moveMail( required connection, required string newFolder, required string messageNumber, string folder ){
 
 		var objFolder = getFolder( arguments.connection, arguments.folder );
 		var objNewFolder = getFolder( arguments.connection, arguments.newFolder );
@@ -122,6 +139,7 @@ component output="false" accessors="true" singleton {
 		objFolder.open( objFolder.READ_WRITE );
 		var messages = objFolder.getMessages( JavaCast( "int[]", ListToArray(arguments.messageNumber)) );
 		objFolder.copyMessages( messages, objNewFolder );
+		objFolder.close(true);
 
 		return messages;
 

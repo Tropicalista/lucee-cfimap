@@ -160,6 +160,52 @@ component output="false" displayname="cfimap"  {
 				);
 				break;
 
+			case "delete":
+
+				//check passing attributes passed in
+				if ( !StructKeyExists(arguments.attributes, 'connection') ) {
+					throw( type="application", message="Attribute validation error", detail="It has an invalid attribute combination." );
+				}
+				variables.imap.close( arguments.caller[arguments.attributes.connection], arguments.attributes.folder );
+				break;
+
+			case "markread":
+
+				//check passing attributes passed in
+				if ( !StructKeyExists(arguments.attributes, 'connection') ) {
+					throw( type="application", message="Attribute validation error", detail="It has an invalid attribute combination." );
+				}
+				variables.imap.markread( arguments.caller[arguments.attributes.connection], arguments.attributes.folder );
+				break;
+
+			case "movemail":
+
+				//check passing attributes passed in
+				if ( !StructKeyExists(arguments.attributes, 'connection') ||
+					!StructKeyExists(arguments.attributes, 'newFolder') ||
+					!StructKeyExists(arguments.attributes, 'messageNumber') 
+				){
+					throw( type="application", message="Attribute validation error", detail="It has an invalid attribute combination." );
+				}
+				variables.imap.movemail( arguments.caller[arguments.attributes.connection], arguments.attributes.newFolder, arguments.attributes.messageNumber, arguments.attributes.folder );
+				break;
+
+			case "getheaderonly":
+
+				//check passing attributes passed in
+				if ( !StructKeyExists(arguments.attributes, 'connection') ||
+					!StructKeyExists(arguments.attributes, 'name')
+				){
+					throw( type="application", message="Attribute validation error", detail="It has an invalid attribute combination." );
+				}
+				arguments.caller[arguments.attributes.name] = variables.imap.getHeaderOnly( arguments.caller[arguments.attributes.connection], 
+					arguments.attributes.name, 
+					arguments.attributes.folder, 
+					arguments.attributes.startRow, 
+					arguments.attributes.maxRows 
+				);
+				break;
+
 			case "close":
 
 				//check passing attributes passed in

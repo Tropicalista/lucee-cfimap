@@ -12,6 +12,8 @@
 - RenameFolder
 - MarkRead
 - MoveMail
+- Delete
+- GetAll ( work in progress )
 
 
 ## Installation
