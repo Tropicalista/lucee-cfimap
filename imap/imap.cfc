@@ -34,12 +34,14 @@ component output="false" accessors="true" singleton {
 		arguments.connection.close();
 	}
 
-	public function getHeaderOnly( required string connection, string folder = "INBOX", startRow = 1, maxRows ){
-		
+	public function getHeaderOnly( required string connection, string folder = "INBOX", startRow = 1, maxRows, uid, messageNumber ){
+
 		var objFolder = getFolder( arguments.connection, arguments.folder );
 		objFolder.open( objFolder.READ_ONLY );
 
-		if( structKeyExists( arguments, "messageNumber") ){
+		if( structKeyExists( arguments, "uid") ){
+			var messages = objFolder.getMessagesByUID( listToArray(arguments.uid) );
+		}elseif( structKeyExists( arguments, "messageNumber") ){
 			var messages = objFolder.getMessage( arguments.messageNumber );
 		}elseif( !structKeyExists( arguments, "maxRows") ){
 			var messages = objFolder.getMessages();
@@ -60,14 +62,18 @@ component output="false" accessors="true" singleton {
 		var objFolder = getFolder( arguments.connection, arguments.folder );
 		objFolder.open( objFolder.READ_ONLY );
 
-		if( structKeyExists( arguments, "messageNumber") ){
+		if( structKeyExists( arguments, "uid") ){
+			var messages = objFolder.getMessagesByUID( listToArray(arguments.uid) );
+		}elseif( structKeyExists( arguments, "messageNumber") ){
 			var messages = objFolder.getMessage( arguments.messageNumber );
+		}elseif( !structKeyExists( arguments, "maxRows") ){
+			var messages = objFolder.getMessages();
 		}else{
-			var messages = objFolder.getMessages( arguments.startRow, arguments.maxRows );
+			var messages = objFolder.getMessages( arguments.startRow, arguments.startRow + arguments.maxRows );
 		}
 
 		var columns = "answered, attachmentfiles, attachments, body, cc, deleted, draft, flagged, from, header, htmlbody, lines, messageid, 
-		messagenumber, recent, replyto, rxddate, seen, size, subject, textbody, to, uid, user";
+		messagenumber, recent, replyto, rxddate, seen, sentDate, size, subject, textbody, to, uid, user";
 		var list = createQuery( messages, columns, true )
 
 		objFolder.close( false );
@@ -213,13 +219,13 @@ component output="false" accessors="true" singleton {
 		
 		var list = QueryNew( arguments.columns );
 
-		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
+		loop from="1" to="#ArrayLen( ArrayMerge( [], messages) )#" step="1" index="index"{
 			queryAddRow(list);
 			querySetCell( list, "answered", messages[index].isSet(flag.ANSWERED) );
 			if( arguments.all ) querySetCell( list, "attachmentfiles", messages[index].isSet(flag.ANSWERED) );
 			if( arguments.all ) querySetCell( list, "attachments", getFileName( messages[index] ) );
 			if( arguments.all ) querySetCell( list, "body", getHtmlBody( messages[index] ) );
-			querySetCell( list, "cc", IsArray( messages[index].getRecipients( recipient.CC ) ) ? ArrayToList(messages[index].getRecipients( recipient.TO )) : messages[index].getRecipients( recipient.TO ) );
+			querySetCell( list, "cc", IsArray( messages[index].getRecipients( recipient.CC ) ) ? ArrayToList(messages[index].getRecipients( recipient.TO )) : "" );
 			querySetCell( list, "deleted", messages[index].isSet(flag.DELETED) );
 			querySetCell( list, "draft", messages[index].isSet(flag.DRAFT) );
 			querySetCell( list, "flagged", messages[index].isSet(flag.FLAGGED) );
@@ -260,7 +266,6 @@ component output="false" accessors="true" singleton {
 
 			var part = multiPart.getBodyPart( i );
 
-			dump(part.getDisposition());
 			if( !isNull( part.getDisposition() ) AND 
 				( compareNoCase( part.getDisposition(), p.ATTACHMENT ) || compareNoCase( part.getDisposition(), p.INLINE ) )
 			){

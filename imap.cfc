@@ -200,7 +200,11 @@ component output="false" displayname="cfimap"  {
 				}
 				arguments.caller[arguments.attributes.name] = variables.imap.getHeaderOnly( 
 					arguments.caller[arguments.attributes.connection], 
-					arguments.attributes.folder
+					arguments.attributes.folder ?: "",
+					arguments.attributes.startRow ?: "",
+					arguments.attributes.maxRow ?: "",
+					arguments.attributes.uid ?: "",
+					arguments.attributes.messageNumber ?: ""
 				);
 				break;
 
