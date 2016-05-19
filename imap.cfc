@@ -45,7 +45,7 @@ component output="false" displayname="cfimap"  {
 	/**
 	*
 	* @hint invoked after tag is constructed
-	* @component the parent cfc custom tag, if there is one
+	* @parent the parent cfc custom tag, if there is one
 	*
 	*/
 	public function init( required boolean hasEndTag = false, component parent ){

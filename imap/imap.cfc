@@ -36,47 +36,14 @@ component output="false" accessors="true" singleton {
 
 	public function getHeaderOnly( required string connection, string folder = "INBOX", startRow = 1, maxRows, uid, messageNumber ){
 
-		var objFolder = getFolder( arguments.connection, arguments.folder );
-		objFolder.open( objFolder.READ_ONLY );
-
-		if( structKeyExists( arguments, "uid") ){
-			var messages = objFolder.getMessagesByUID( listToArray(arguments.uid) );
-		}elseif( structKeyExists( arguments, "messageNumber") ){
-			var messages = objFolder.getMessage( arguments.messageNumber );
-		}elseif( !structKeyExists( arguments, "maxRows") ){
-			var messages = objFolder.getMessages();
-		}else{
-			var messages = objFolder.getMessages( arguments.startRow, arguments.startRow + arguments.maxRows );
-		}
-
-		var columns = "answered, cc, deleted, draft, flagged, from, header, lines, messageid, 
-		messagenumber, recent, replyto, rxddate, seen, sentDate, size, subject, to, uid";
-		var list = createQuery( messages, columns, false )
-
-		objFolder.close( false );
+		var list = getMessages(arguments);
 		return list;
 
 	}
 
-	public function getAll( required connection, string folder = "INBOX", startRow = 1, maxRows = 1 ){
-		var objFolder = getFolder( arguments.connection, arguments.folder );
-		objFolder.open( objFolder.READ_ONLY );
-
-		if( structKeyExists( arguments, "uid") ){
-			var messages = objFolder.getMessagesByUID( listToArray(arguments.uid) );
-		}elseif( structKeyExists( arguments, "messageNumber") ){
-			var messages = objFolder.getMessage( arguments.messageNumber );
-		}elseif( !structKeyExists( arguments, "maxRows") ){
-			var messages = objFolder.getMessages();
-		}else{
-			var messages = objFolder.getMessages( arguments.startRow, arguments.startRow + arguments.maxRows );
-		}
-
-		var columns = "answered, attachmentfiles, attachments, body, cc, deleted, draft, flagged, from, header, htmlbody, lines, messageid, 
-		messagenumber, recent, replyto, rxddate, seen, sentDate, size, subject, textbody, to, uid, user";
-		var list = createQuery( messages, columns, true )
-
-		objFolder.close( false );
+	public function getAll( required connection, string folder = "INBOX", startRow = 1, maxRows, uid, messageNumber ){
+		
+		var list = getMessages(arguments, true);
 		return list;
 
 	}
@@ -219,7 +186,10 @@ component output="false" accessors="true" singleton {
 		
 		var list = QueryNew( arguments.columns );
 
-		loop from="1" to="#ArrayLen( ArrayMerge( [], messages) )#" step="1" index="index"{
+		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
+			if( isNull(messages[index]) ){
+				continue;
+			}
 			queryAddRow(list);
 			querySetCell( list, "answered", messages[index].isSet(flag.ANSWERED) );
 			if( arguments.all ) querySetCell( list, "attachmentfiles", messages[index].isSet(flag.ANSWERED) );
@@ -282,7 +252,6 @@ component output="false" accessors="true" singleton {
         if ( message.isMimeType( "multipart/*" ) ) {
 
 			var multiPart = arguments.message.getContent();
-			
 			for ( i=0; i LT multiPart.getCount(); i++ ) {
 
 				var bodyPart = multiPart.getBodyPart( i );
@@ -323,10 +292,41 @@ component output="false" accessors="true" singleton {
     boolean function hasAttachments( msg ){
 		if ( msg.isMimeType("multipart/mixed") ){
 		    var mp = msg.getContent();
-		    if ( mp.getCount() > 1 )
+		    if ( mp.getCount() > 1 ){
 				return true;
+			}
 		}
 		return false;
     }
 
+
+    public any function getMessages( struct attr, boolean getAll = false ) {
+
+    	var messages = [];
+		var columns = "answered, cc, deleted, draft, flagged, from, header, lines, messageid, 
+		messagenumber, recent, replyto, rxddate, seen, sentDate, size, subject, to, uid";
+		var objFolder = getFolder( arguments.attr.connection, arguments.attr.folder );
+		objFolder.open( objFolder.READ_ONLY );
+
+		if( structKeyExists( arguments.attr, "uid") ){
+			var messages = objFolder.getMessagesByUID( listToArray(arguments.attr.uid) );
+		}elseif( structKeyExists( arguments.attr, "messageNumber") ){
+			var messages = objFolder.getMessage( arguments.attr.messageNumber );
+		}elseif( !structKeyExists( arguments.attr, "maxRows") ){
+			var messages = objFolder.getMessages();
+		}else{
+			var messages = objFolder.getMessages( arguments.attr.startRow, arguments.attr.startRow + arguments.attr.maxRows - 1 );
+		}
+
+		if( arguments.getAll ){
+			columns = ListAppend( columns, "attachmentfiles, attachments, body, htmlbody, textbody, user", "," );
+		}
+
+		var list = createQuery( messages, columns, arguments.getAll )
+
+		objFolder.close( false );
+
+    	return list;
+    }
+    
 }
