@@ -4,34 +4,33 @@
 * @description
 *
 */
-
 component output="false" displayname="cfimap"  {
 
-	this.metadata.hint="(partial) implementation of cfimap"; // http://pdfbox.apache.org
+	this.metadata.hint="(partial) implementation of cfimap";
 	this.metadata.attributetype="fixed";
 	this.metadata.attributes={
 		Action 			: { required:true, type:"string", hint="[DELETE|DELETEFOLDER|CREATEFOLDER|OPEN|CLOSE|RENAMEFOLDER|LISTALLFOLDERS|MARKREAD|MOVEMAIL|GETALL|GETHEADERONLY]"},
 		Attachmentpath  : { required:false, type:"string", hint="pathname (Todo: byte array)"},
-		Connection: { required:false, type:"string",    hint="read - structure containing form field values"},
-		Folder: { required:false, type:"string", hint="pathname"},
-		GenerateUniqueFilenames: { required:false, type:"boolean", hint="overwrite the destination file. default no"},
-		MaxRows: { required:false, type:"boolean", hint="remove form fields. default no"},
-		MessageNumber: { required:false, type:"string", hint="that returns XML data"},
-		Name: { required:false, type:"string", hint="filename to be exported to"},
-		NewFolder: { required:false, type:"string", hint="filename to be exported to"},
-		Password: { required:false, type:"string", hint="filename to be exported to"},
-		Port: { required:false, type:"string", hint="filename to be exported to"},
-		Recurse: { required:false, type:"boolean", hint="filename to be exported to"},
-		Secure: { required:false, type:"boolean", hint="filename to be exported to"},
-		Server: { required:false, type:"string", hint="filename to be exported to"},
-		StartRow: { required:false, type:"string", hint="filename to be exported to"},
-		StopOnError: { required:false, type:"string", hint="filename to be exported to"},
-		Timeout: { required:false, type:"string", hint="filename to be exported to"},
-		Uid: { required:false, type:"string", hint="filename to be exported to"},
-		Username: { required:false, type:"string", hint="filename to be exported to"}
+		Connection: { required:false, type:"string", hint="Specifies the variable name for the connection/sessio."},
+		Folder: { required:false, type:"string", hint="Specifies the folder name where messages are retrieved, moved, or deleted"},
+		GenerateUniqueFilenames: { required:false, type:"boolean", hint="Ensures that unique file names are generated for each attachment file. Default = NO"},
+		MaxRows: { required:false, type:"boolean", hint="Specifies the number of rows to be marked as read, deleted, or moved across folders."},
+		MessageNumber: { required:false, type:"string", hint="Specifies the message number or a comma delimited list of message numbers for retrieval, deletion, marking mail as read, or moving mails."},
+		Name: { required:false, type:"string", hint="Specifies the name for the query object that contains the retrieved message information."},
+		NewFolder: { required:false, type:"string", hint="Specifies the name of the new folder when you rename a folder or the name of the destination folder where all mails move."},
+		Password: { required:false, type:"string", hint="Specifies the password for assessing the users’ e-mail account."},
+		Port: { required:false, type:"string", hint="Specifies the IMAP port number. Use 143 for non-secure connections and 993 for secured connections."},
+		Recurse: { required:false, type:"boolean", hint="Specifies whether ColdFusion runs the CFIMAP command in subfolders. Recurse works for action=”ListAllFolders”. When recurse is set to ”true”, ColdFusion parses through all folders and subfolders and returns folder/subfolder names and mail information."},
+		Secure: { required:false, type:"boolean", hint="Specifies whether the IMAP server uses a Secure Sockets Layer."},
+		Server: { required:false, type:"string", hint="Specifies the IMAP server identifier. You can assign a host name or an IP address as the IMAP server identifier."},
+		StartRow: { required:false, type:"string", hint="Defines the first row number for reading or deleting. If you have specified the UID or MessageNumber attribute, then StartRow is ignored. You can also specify StartRow for moving mails."},
+		StopOnError: { required:false, type:"string", hint="Specifies whether to ignore the exceptions for this operation. When the value is true, it stops processing, displays an appropriate error."},
+		Timeout: { required:false, type:"string", hint="Specifies the number of seconds to wait before timing out connection to IMAP server. An error message is displayed when timeout occurs."},
+		Uid: { required:false, type:"string", hint="Specifies the unique ID or a comma-delimited list of Uids to retrieve, delete, and move mails. If you set invalid Uids, then they are ignored."},
+		Username: { required:false, type:"string", hint="Specifies the user name. Typically, the user name is same the e-mail login."}
 	};
 	this.metadata.requiredAttributesPerAction = {
-		GetAll: ['name'],
+		GetAll: ['name','connection'],
 		GetHeaderOnly: ['name'],
 		ListAllFolders: ['name'],
 		CreateFolder: ['folder'],

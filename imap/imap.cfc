@@ -18,7 +18,7 @@ component output="false" accessors="true" singleton {
 		var objStore = createObject("Java", "javax.mail.Store");
 		var oTimeout = arguments.timeout * 1000;
 		objProperties.init();
-		objProperties.put("mail.store.protocol", "imap");
+		objProperties.put("mail.store.protocol", arguments.secure ? 'imaps' : 'imap');
 		objProperties.put("mail.imap.port", JavaCast( "int", arguments.port ) );
 		objProperties.put("mail.imap.connectiontimeout", oTimeout);
 		objProperties.put("mail.imap.timeout", oTimeout);
