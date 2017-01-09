@@ -87,19 +87,26 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public function delete( required connection, string folder ){
+	public numeric function delete( string folder, string uid = "" ){
 
 		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
-		var objFolder = getFolder( arguments.connection, arguments.folder );
-		objFolder.open( objFolder.READ_WRITE );
-		var messages = objFolder.getMessages();
+		var objFolder = getFolder( arguments.folder );
+		var deleted = 0;
 
-		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
-			messages[index].setFlag(flag.DELETED, true);
+		if (arguments.uid neq "") {
+			objFolder.open( objFolder.READ_WRITE );
+			var messages = objFolder.getMessages();
+
+			loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
+				if (listfind(arguments.uid, objFolder.getUID(messages[index]))) {
+					messages[index].setFlag(flag.DELETED, true);
+					deleted++;
+				}
+			}
+			objFolder.close(true);
 		}
-		objFolder.close(true);
 
-		return messages;
+		return deleted;
 
 	}
 
