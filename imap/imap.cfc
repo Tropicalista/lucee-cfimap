@@ -60,7 +60,7 @@ component output="false" accessors="true" singleton {
 				querySetCell(list, "fullname", folders[index].getFullName());
 				querySetCell(list, "name", folders[index].getName());
 				querySetCell(list, "new", folders[index].getNewMessageCount());
-				querySetCell(list, "parent", folders[index].getParent().getName());
+				querySetCell(list, "parent", folders[index].getParent().getFullName());
 				querySetCell(list, "unread", folders[index].getUnreadMessageCount());
 				querySetCell(list, "totalmessages", folders[index].getMessageCount());
 			}
@@ -192,8 +192,8 @@ component output="false" accessors="true" singleton {
 			}
 			queryAddRow(list);
 			querySetCell( list, "answered", messages[index].isSet(flag.ANSWERED) );
-			if( arguments.all ) querySetCell( list, "attachmentfiles", messages[index].isSet(flag.ANSWERED) );
-			if( arguments.all ) querySetCell( list, "attachments", getFileName( messages[index] ) );
+			if( arguments.all ) querySetCell( list, "attachmentfiles", getFileName( messages[index] ) );
+			if( arguments.all ) querySetCell( list, "attachments", hasAttachments( messages[index] ) );
 			if( arguments.all ) querySetCell( list, "body", getHtmlBody( messages[index] ) );
 			querySetCell( list, "cc", IsArray( messages[index].getRecipients( recipient.CC ) ) ? ArrayToList(messages[index].getRecipients( recipient.TO )) : "" );
 			querySetCell( list, "deleted", messages[index].isSet(flag.DELETED) );
@@ -249,7 +249,7 @@ component output="false" accessors="true" singleton {
 
 	private function getText( required message ){
 
-        if ( message.isMimeType( "multipart/*" ) ) {
+	        if ( message.isMimeType( "multipart/*" ) ) {
 
 			var multiPart = arguments.message.getContent();
 			for ( i=0; i LT multiPart.getCount(); i++ ) {
@@ -262,7 +262,10 @@ component output="false" accessors="true" singleton {
 
 			}
 
-        }
+	        }
+		else if (arguments.message.isMimeType( "text/plain" ))
+			return arguments.message.getContent();
+		else return "";
 
 	}
 
