@@ -161,7 +161,7 @@ component output="false" displayname="cfimap"  {
 					throw( type="application", message="Attribute validation error", detail="It has an invalid attribute combination." );
 				}
 				if( !StructKeyExists(arguments.attributes, 'folder') ){
-					arguments.attributes['folder'] = "INBOX";
+					arguments.attributes['folder'] = "";
 				}
 				arguments.caller[arguments.attributes.name] = variables.imap.ListAllFolders( 
 					arguments.caller[arguments.attributes.connection],
