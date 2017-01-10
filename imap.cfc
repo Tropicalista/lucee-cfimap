@@ -154,8 +154,7 @@ component output="false" displayname="cfimap"  {
 				}
 				arguments.caller[arguments.attributes.name] = variables.imap.ListAllFolders( 
 					arguments.caller[arguments.attributes.connection],
-					arguments.attributes.folder,
-					arguments.attributes.recurse
+					arguments.attributes.folder
 				);
 				break;
 
