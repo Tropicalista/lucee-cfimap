@@ -63,6 +63,17 @@ component output="false" displayname="cfimap"  {
 			throw( type="application", message="missing parameter", detail="'action' not passed in" );
 		}
 
+		if( structKeyExists( this.metadata.requiredAttributesPerAction, arguments.attributes.action ) ){
+			var attrName = "";
+			loop array="#this.metadata.requiredAttributesPerAction[arguments.attributes.action]#" index="attrName" {
+				if( not structKeyExists( arguments.attributes, attrName ) ){
+					throw (message="Attribute validation error for tag CFIMAP: when action is '#arguments.attributes.action#', the atribute [#attrName#] is required!");
+				}
+			}
+		}else{
+			throw( type="application", message="CFIMAP does not have an action '#htmleditformat(action)#'!", detail="Only actions '#structKeyList(this.metadata.requiredAttributesPerAction)#' are available." );
+		}
+
 		// check for source
 		switch(arguments.attributes.action) {
 
@@ -194,7 +205,7 @@ component output="false" displayname="cfimap"  {
 				if ( !StructKeyExists(arguments.attributes, 'connection') ||
 					!StructKeyExists(arguments.attributes, 'name')
 				){
-					throw( type="application", message="Attribute validation error", detail="It has an invalid attribute combination." );
+					throw( type="application", message="Attribute validation error for tag CFIMAP", detail="It has an invalid attribute combination." );
 				}
 				arguments.caller[arguments.attributes.name] = variables.imap.getHeaderOnly( 
 					arguments.caller[arguments.attributes.connection], 
