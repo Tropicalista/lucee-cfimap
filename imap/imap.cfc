@@ -87,30 +87,60 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public function delete( required connection, string folder ){
+	public numeric function delete( string folder, string messageNumber = "", string uid = "" ){
 
 		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
-		var objFolder = getFolder( arguments.connection, arguments.folder );
-		objFolder.open( objFolder.READ_WRITE );
-		var messages = objFolder.getMessages();
+		var objFolder = getFolder( arguments.folder );
+		var deleted = 0;
 
-		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
-			messages[index].setFlag(flag.DELETED, true);
+		if (arguments.uid neq "") {
+			objFolder.open( objFolder.READ_WRITE );
+			var messages = objFolder.getMessages();
+
+			loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
+				if (structKeyExists(arguments, "uid") and listlen(arguments.uid)) {
+					if (listfind(arguments.uid, objFolder.getUID(messages[index]))) {
+						messages[index].setFlag(flag.DELETED, true);
+						deleted++;
+					}
+				}
+				else if (structKeyExists(arguments, "messageNumber") and listlen(arguments.messageNumber)) {
+					if (listfind(arguments.messageNumber, objFolder.getMessageNumber(messages[index]))) {
+						messages[index].setFlag(flag.DELETED, true);
+						deleted++;
+					}
+				}
+				else
+					throw "uid and messageNumber are empty."
+			}
+			objFolder.close(true);
 		}
-		objFolder.close(true);
 
-		return messages;
+		return deleted;
 
 	}
 
-	public function moveMail( required connection, required string newFolder, required string messageNumber, string folder ){
+	public function moveMail( required string newFolder, string messageNumber, string uid, string folder ){
 
-		var objFolder = getFolder( arguments.connection, arguments.folder );
-		var objNewFolder = getFolder( arguments.connection, arguments.newFolder );
+		var objFolder = getFolder( arguments.folder );
+		var objNewFolder = getFolder( arguments.newFolder );
+		var messages = "";
 
 		objFolder.open( objFolder.READ_WRITE );
-		var messages = objFolder.getMessages( JavaCast( "int[]", ListToArray(arguments.messageNumber)) );
+		if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
+			messages = objFolder.getMessagesByUID( JavaCast( "int[]", ListToArray(arguments.uid)) );
+		else if (listlen(arguments.messageNumber))
+			messages = objFolder.getMessages( JavaCast( "int[]", ListToArray(arguments.messageNumber)) );
+		else
+			throw "uid and messageNumber are empty."
+
 		objFolder.copyMessages( messages, objNewFolder );
+
+		if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
+			delete( folder=arguments.folder, uid=arguments.uid );
+		else
+			delete( folder=arguments.folder, messageNumber=arguments.messageNumber );
+
 		objFolder.close(true);
 
 		return messages;
