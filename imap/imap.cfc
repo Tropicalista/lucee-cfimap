@@ -42,8 +42,8 @@ component output="false" accessors="true" singleton {
 	}
 
 	public function getAll( required connection, string folder = "INBOX", startRow = 1, maxRows, uid, messageNumber ){
-		
-		var list = getMessages(arguments, true);
+
+		var list = getMessages( arguments, true );
 		return list;
 
 	}
