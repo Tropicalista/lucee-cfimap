@@ -60,7 +60,7 @@ component output="false" displayname="cfimap"  {
 
 		// check for action
 		if ( !StructKeyExists( arguments.attributes, 'action' ) ) {
-			throw( type="application", message="missing parameter", detail="'action' not passed in" );
+			throw( message="missing parameter", detail="'action' not passed in" );
 		}
 
 		if( structKeyExists( this.metadata.requiredAttributesPerAction, arguments.attributes.action ) ){
@@ -161,7 +161,7 @@ component output="false" displayname="cfimap"  {
 					throw( type="application", message="Attribute validation error", detail="It has an invalid attribute combination." );
 				}
 				if( !StructKeyExists(arguments.attributes, 'folder') ){
-					arguments.attributes.folder = "INBOX";
+					arguments.attributes['folder'] = "INBOX";
 				}
 				arguments.caller[arguments.attributes.name] = variables.imap.ListAllFolders( 
 					arguments.caller[arguments.attributes.connection],
@@ -208,6 +208,24 @@ component output="false" displayname="cfimap"  {
 					throw( type="application", message="Attribute validation error for tag CFIMAP", detail="It has an invalid attribute combination." );
 				}
 				arguments.caller[arguments.attributes.name] = variables.imap.getHeaderOnly( 
+					arguments.caller[arguments.attributes.connection], 
+					arguments.attributes.folder ?: "",
+					arguments.attributes.startRow ?: "",
+					arguments.attributes.maxRow ?: "",
+					arguments.attributes.uid ?: "",
+					arguments.attributes.messageNumber ?: ""
+				);
+				break;
+
+			case "getall":
+
+				//check passing attributes passed in
+				if ( !StructKeyExists(arguments.attributes, 'connection') ||
+					!StructKeyExists(arguments.attributes, 'name')
+				){
+					throw( type="application", message="Attribute validation error for tag CFIMAP", detail="It has an invalid attribute combination." );
+				}
+				arguments.caller[arguments.attributes.name] = variables.imap.getAll( 
 					arguments.caller[arguments.attributes.connection], 
 					arguments.attributes.folder ?: "",
 					arguments.attributes.startRow ?: "",
