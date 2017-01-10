@@ -186,7 +186,7 @@ component output="false" accessors="true" singleton {
 
 	private function getFolders( required connection, string folder, boolean recurse = false ){
 
-		if( !len( arguments.folder ) GT 0 ){
+		if( !len( arguments.folder ) ){
 			var folders = arguments.recurse ? arguments.connection.getDefaultFolder().list("*") : arguments.connection.getDefaultFolder().list();
 		}else{
 			var folders = arguments.recurse ? arguments.connection.getFolder( arguments.folder ).list("*") : arguments.connection.getFolder( arguments.folder ).list();
