@@ -211,7 +211,7 @@ component output="false" displayname="cfimap"  {
 					arguments.caller[arguments.attributes.connection], 
 					arguments.attributes.folder ?: "",
 					arguments.attributes.startRow ?: "",
-					arguments.attributes.maxRow ?: "",
+					arguments.attributes.maxRows ?: "",
 					arguments.attributes.uid ?: "",
 					arguments.attributes.messageNumber ?: ""
 				);
