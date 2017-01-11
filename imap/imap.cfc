@@ -93,28 +93,28 @@ component output="false" accessors="true" singleton {
 		var objFolder = getFolder( arguments.folder );
 		var deleted = 0;
 
-		if (arguments.uid neq "") {
+		if (arguments.uid neq "" or arguments.messageNumber neq "") {
 			objFolder.open( objFolder.READ_WRITE );
 			var messages = objFolder.getMessages();
 
 			loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
-				if (structKeyExists(arguments, "uid") and listlen(arguments.uid)) {
+				if (arguments.uid neq "") {
 					if (listfind(arguments.uid, objFolder.getUID(messages[index]))) {
 						messages[index].setFlag(flag.DELETED, true);
 						deleted++;
 					}
 				}
-				else if (structKeyExists(arguments, "messageNumber") and listlen(arguments.messageNumber)) {
+				else if (arguments.messageNumber neq "") {
 					if (listfind(arguments.messageNumber, objFolder.getMessageNumber(messages[index]))) {
 						messages[index].setFlag(flag.DELETED, true);
 						deleted++;
 					}
 				}
-				else
-					throw "uid and messageNumber are empty."
 			}
 			objFolder.close(true);
 		}
+		else
+			throw "uid and messageNumber are empty."
 
 		return deleted;
 
