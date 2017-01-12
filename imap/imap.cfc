@@ -213,36 +213,43 @@ component output="false" accessors="true" singleton {
 
 		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
 		var recipient = CreateObject("Java", "javax.mail.Message$RecipientType");
-		
+
 		var list = QueryNew( arguments.columns );
+		var index = 0;
+		var htmlbody = "";
+		var textbody = "";
 
 		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
 			if( isNull(messages[index]) ){
 				continue;
 			}
+			if( arguments.all ) {
+				htmlbody = getContentOfType( messages[index], "text/html" );
+				textbody = getContentOfType( messages[index], "text/plain" );
+			}
 			queryAddRow(list);
 			querySetCell( list, "answered", messages[index].isSet(flag.ANSWERED) );
 			if( arguments.all ) querySetCell( list, "attachmentfiles", getFileName( messages[index] ) );
 			if( arguments.all ) querySetCell( list, "attachments", hasAttachments( messages[index] ) );
-			if( arguments.all ) querySetCell( list, "body", getHtmlBody( messages[index] ) );
+			if( arguments.all ) querySetCell( list, "body", len(trim(htmlbody)) ? htmlbody:textbody );
 			querySetCell( list, "cc", IsArray( messages[index].getRecipients( recipient.CC ) ) ? ArrayToList(messages[index].getRecipients( recipient.TO )) : "" );
 			querySetCell( list, "deleted", messages[index].isSet(flag.DELETED) );
 			querySetCell( list, "draft", messages[index].isSet(flag.DRAFT) );
 			querySetCell( list, "flagged", messages[index].isSet(flag.FLAGGED) );
-			querySetCell( list, "from", messages[index].getSender().toString() );
+			querySetCell( list, "from", isNull(messages[index].getSender()) ? "": messages[index].getSender().toString() );
 			querySetCell( list, "header", ArrayToList( createObject( "java", "java.util.Collections" ).list( messages[index].getAllHeaderLines() ) ) );
-			if( arguments.all ) querySetCell( list, "htmlbody", getHtmlBody( messages[index] ) );
+			if( arguments.all ) querySetCell( list, "htmlbody", htmlbody );
 			querySetCell( list, "lines", messages[index].getLineCount() );
 			querySetCell( list, "messageid", messages[index].getMessageID() );
 			querySetCell( list, "messagenumber", messages[index].getMessageNumber() );
 			querySetCell( list, "recent", messages[index].isSet(flag.RECENT) );
-			querySetCell( list, "replyto", ArrayToList(messages[index].getReplyTo()) );
+			querySetCell( list, "replyto", isNull(messages[index].getReplyTo()) ? "":ArrayToList(messages[index].getReplyTo()) );
 			querySetCell( list, "rxddate", messages[index].getReceivedDate() );
 			querySetCell( list, "seen", messages[index].isSet(flag.SEEN) );
 			querySetCell( list, "sentDate", messages[index].getSentDate() );
 			querySetCell( list, "size", messages[index].getSize() );
 			querySetCell( list, "subject", messages[index].getSubject() );
-			if( arguments.all ) querySetCell( list, "textbody", getText( messages[index] ) );
+			if( arguments.all ) querySetCell( list, "textbody", textbody );
 			querySetCell( list, "to", IsArray( messages[index].getRecipients( recipient.TO ) ) ? ArrayToList(messages[index].getRecipients( recipient.TO )) : messages[index].getRecipients( recipient.TO ) );
 			querySetCell( list, "uid", messages[index].getFolder().getUID( messages[index] ) );
 			if( arguments.all ) querySetCell( list, "user", messages[index].isSet(flag.USER) );
@@ -277,52 +284,33 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	private function getText( required message ){
+	private function getContentOfType( required message, required mimetype ){
 
-	        if ( message.isMimeType( "multipart/*" ) ) {
-
-			var multiPart = arguments.message.getContent();
-			for ( i=0; i LT multiPart.getCount(); i++ ) {
-
-				var bodyPart = multiPart.getBodyPart( i );
-
-				if( bodyPart.isMimeType("text/plain") ){
-					return bodyPart.getContent();
-				}
-
-			}
-
-	        }
-		else if (arguments.message.isMimeType( "text/plain" ))
+		if ( arguments.message.isMimeType( arguments.mimetype ) ) {
 			return arguments.message.getContent();
-		else return "";
-
-	}
-
-	private function getHtmlBody( required message ){
-
-        if ( message.isMimeType( "multipart/*" ) ) {
+		}
+		else if ( arguments.message.isMimeType( "multipart/*" ) ) {
 
 			var multiPart = arguments.message.getContent();
-			
-			for ( i=0; i LT multiPart.getCount(); i++ ) {
+
+			for ( var i=0; i < multiPart.getCount(); i++ ) {
 
 				var bodyPart = multiPart.getBodyPart( i );
 
-        		if ( bodyPart.isMimeType( "multipart/*" ) ) {
-        			return bodyPart.getContent().getBodyPart(1).getContent();
-        		}
-        		if ( bodyPart.isMimeType( "text/html" ) ) {
+        		if ( bodyPart.isMimeType( arguments.mimetype ) ) {
         			return bodyPart.getContent();
-        		}
-
+				}
+				else if ( bodyPart.isMimeType( "multipart/*" ) ) {
+					return getContentOfType( bodyPart, arguments.mimetype );
+				}
 			}
 
-        }
+		}
 
+		return "";
 	}
 
-    boolean function hasAttachments( msg ){
+    	boolean function hasAttachments( msg ){
 		if ( msg.isMimeType("multipart/mixed") ){
 		    var mp = msg.getContent();
 		    if ( mp.getCount() > 1 ){
@@ -330,12 +318,11 @@ component output="false" accessors="true" singleton {
 			}
 		}
 		return false;
-    }
+    	}
 
+    	public any function getMessages( struct attr, boolean getAll = false ) {
 
-    public any function getMessages( struct attr, boolean getAll = false ) {
-
-    	var messages = [];
+    		var messages = [];
 		var columns = "answered, cc, deleted, draft, flagged, from, header, lines, messageid, 
 		messagenumber, recent, replyto, rxddate, seen, sentDate, size, subject, to, uid";
 		var objFolder = getFolder( arguments.attr.connection, arguments.attr.folder );
@@ -359,7 +346,7 @@ component output="false" accessors="true" singleton {
 
 		objFolder.close( false );
 
-    	return list;
-    }
+    		return list;
+	}
     
 }
