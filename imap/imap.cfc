@@ -218,6 +218,8 @@ component output="false" accessors="true" singleton {
 		var index = 0;
 		var htmlbody = "";
 		var textbody = "";
+		var cc = "";
+		var to = "";
 
 		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
 			if( isNull(messages[index]) ){
@@ -232,7 +234,7 @@ component output="false" accessors="true" singleton {
 			if( arguments.all ) querySetCell( list, "attachmentfiles", getFileName( messages[index] ) );
 			if( arguments.all ) querySetCell( list, "attachments", hasAttachments( messages[index] ) );
 			if( arguments.all ) querySetCell( list, "body", len(trim(htmlbody)) ? htmlbody:textbody );
-			querySetCell( list, "cc", IsArray( messages[index].getRecipients( recipient.CC ) ) ? ArrayToList(messages[index].getRecipients( recipient.TO )) : "" );
+			querySetCell( list, "cc", IsArray( isNull(cc) ? "": cc ) ? ArrayToList(cc) : "" );
 			querySetCell( list, "deleted", messages[index].isSet(flag.DELETED) );
 			querySetCell( list, "draft", messages[index].isSet(flag.DRAFT) );
 			querySetCell( list, "flagged", messages[index].isSet(flag.FLAGGED) );
@@ -250,7 +252,7 @@ component output="false" accessors="true" singleton {
 			querySetCell( list, "size", messages[index].getSize() );
 			querySetCell( list, "subject", messages[index].getSubject() );
 			if( arguments.all ) querySetCell( list, "textbody", textbody );
-			querySetCell( list, "to", IsArray( messages[index].getRecipients( recipient.TO ) ) ? ArrayToList(messages[index].getRecipients( recipient.TO )) : messages[index].getRecipients( recipient.TO ) );
+			querySetCell( list, "to", IsArray( isNull(to) ? "": to ) ? ArrayToList(to) : "" );
 			querySetCell( list, "uid", messages[index].getFolder().getUID( messages[index] ) );
 			if( arguments.all ) querySetCell( list, "user", messages[index].isSet(flag.USER) );
 		}
