@@ -71,17 +71,32 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public function markRead( required connection, string folder ){
+	public function markRead( required connection, string folder, string messageNumber = "", string uid = "" ){
 
 		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
 		var objFolder = getFolder( arguments.connection, arguments.folder );
-		objFolder.open( objFolder.READ_WRITE );
-		var messages = objFolder.getMessages();
 
-		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
-			messages[index].setFlag(flag.SEEN, true);
+		if (arguments.uid neq "" or arguments.messageNumber neq "") {
+			objFolder.open( objFolder.READ_WRITE );
+			var messages = objFolder.getMessages();
+			var index = 0;
+
+			loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
+				if (arguments.uid neq "") {
+					if (listfind(arguments.uid, objFolder.getUID(messages[index]))) {
+						messages[index].setFlag(flag.SEEN, true);
+					}
+				}
+				else if (arguments.messageNumber neq "") {
+					if (listfind(arguments.messageNumber, objFolder.getMessageNumber(messages[index]))) {
+						messages[index].setFlag(flag.SEEN, true);
+					}
+				}
+			}
+			objFolder.close(true);
 		}
-		objFolder.close(true);
+		else
+			throw "uid and messageNumber are empty."
 
 		return messages;
 
