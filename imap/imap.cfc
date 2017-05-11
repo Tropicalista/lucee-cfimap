@@ -341,14 +341,14 @@ component output="false" accessors="true" singleton {
 		var objFolder = getFolder( arguments.attr.connection, arguments.attr.folder );
 		objFolder.open( objFolder.READ_ONLY );
 
-		if( structKeyExists( arguments.attr, "uid") ){
+		if( structKeyExists( arguments.attr, "uid") AND arguments.attr.uid Neq ""){
 			var messages = objFolder.getMessagesByUID( listToArray(arguments.attr.uid) );
-		}elseif( structKeyExists( arguments.attr, "messageNumber") ){
+		}elseif( structKeyExists( arguments.attr, "messageNumber")  AND arguments.attr.messageNumber Neq ""){
 			var messages = objFolder.getMessage( arguments.attr.messageNumber );
-		}elseif( !structKeyExists( arguments.attr, "maxRows") ){
-			var messages = objFolder.getMessages();
-		}else{
+		}elseif( structKeyExists( arguments.attr, "maxRows") AND arguments.attr.maxrows Neq ""){
 			var messages = objFolder.getMessages( arguments.attr.startRow, arguments.attr.startRow + arguments.attr.maxRows - 1 );
+		}else{
+			var messages = objFolder.getMessages();
 		}
 
 		if( arguments.getAll ){
@@ -361,5 +361,7 @@ component output="false" accessors="true" singleton {
 
     	return list;
     }
+    
+}
     
 }
