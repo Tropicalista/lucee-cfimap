@@ -38,7 +38,8 @@ component output="false" displayname="cfimap"  {
 		DeleteFolder: ['folder'],
 		Close: ['connection'],
 		Open: ['connection','server','username','password'],
-		MoveMail: ['newFolder']
+		MoveMail: ['newFolder'],
+		Delete: ['connection','UID']
 	}
 
 	/**
