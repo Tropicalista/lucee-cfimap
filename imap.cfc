@@ -11,7 +11,7 @@ component output="false" displayname="cfimap"  {
 	this.metadata.attributes={
 		Action 			: { required:true, type:"string", hint="[DELETE|DELETEFOLDER|CREATEFOLDER|OPEN|CLOSE|RENAMEFOLDER|LISTALLFOLDERS|MARKREAD|MOVEMAIL|GETALL|GETHEADERONLY]"},
 		Attachmentpath  : { required:false, type:"string", hint="pathname (Todo: byte array)"},
-		Connection: { required:false, type:"string", hint="Specifies the variable name for the connection/sessio."},
+		Connection: { required:false, type:"string", hint="Specifies the variable name for the connection/session."},
 		Folder: { required:false, type:"string", hint="Specifies the folder name where messages are retrieved, moved, or deleted"},
 		GenerateUniqueFilenames: { required:false, type:"boolean", hint="Ensures that unique file names are generated for each attachment file. Default = NO"},
 		MaxRows: { required:false, type:"boolean", hint="Specifies the number of rows to be marked as read, deleted, or moved across folders."},
