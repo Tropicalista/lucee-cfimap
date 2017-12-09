@@ -71,17 +71,29 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public function markRead( required connection, string folder ){
+	public function markRead( string folder, string messageNumber = "", string uid = "" ){
 
 		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
-		var objFolder = getFolder( arguments.connection, arguments.folder );
-		objFolder.open( objFolder.READ_WRITE );
-		var messages = objFolder.getMessages();
+		var objFolder = getFolder( arguments.folder );
 
-		loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
-			messages[index].setFlag(flag.SEEN, true);
+		if (arguments.uid neq "" or arguments.messageNumber neq "") {
+			objFolder.open( objFolder.READ_WRITE );
+			var index = 0;
+
+			if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
+				var messages = objFolder.getMessagesByUID( JavaCast( "int[]", ListToArray(arguments.uid)) );
+			else if (listlen(arguments.messageNumber))
+				var messages = objFolder.getMessages( JavaCast( "int[]", ListToArray(arguments.messageNumber)) );
+			else
+				throw "uid and messageNumber are empty."
+
+			loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
+				messages[index].setFlag(flag.SEEN, true);
+			}
+			objFolder.close(true);
 		}
-		objFolder.close(true);
+		else
+			throw "uid and messageNumber are empty."
 
 		return messages;
 
@@ -95,22 +107,20 @@ component output="false" accessors="true" singleton {
 
 		if (arguments.uid neq "" or arguments.messageNumber neq "") {
 			objFolder.open( objFolder.READ_WRITE );
-			var messages = objFolder.getMessages();
+			var index = 0;
+
+			if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
+				var messages = objFolder.getMessagesByUID( JavaCast( "int[]", ListToArray(arguments.uid)) );
+			else if (listlen(arguments.messageNumber))
+				var messages = objFolder.getMessages( JavaCast( "int[]", ListToArray(arguments.messageNumber)) );
+			else
+				throw "uid and messageNumber are empty."
 
 			loop from="1" to="#ArrayLen( messages )#" step="1" index="index"{
-				if (arguments.uid neq "") {
-					if (listfind(arguments.uid, objFolder.getUID(messages[index]))) {
-						messages[index].setFlag(flag.DELETED, true);
-						deleted++;
-					}
-				}
-				else if (arguments.messageNumber neq "") {
-					if (listfind(arguments.messageNumber, objFolder.getMessageNumber(messages[index]))) {
-						messages[index].setFlag(flag.DELETED, true);
-						deleted++;
-					}
-				}
+				messages[index].setFlag(flag.DELETED, true);
+				deleted++;
 			}
+
 			objFolder.close(true);
 		}
 		else
