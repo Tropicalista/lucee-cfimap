@@ -99,10 +99,10 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public numeric function delete( string folder, string messageNumber = "", string uid = "" ){
+	public numeric function delete( required connection, string folder, string messageNumber = "", string uid = "" ){
 
 		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
-		var objFolder = getFolder( arguments.folder );
+		var objFolder = getFolder( arguments.connection, arguments.folder );
 		var deleted = 0;
 
 		if (arguments.uid neq "" or arguments.messageNumber neq "") {
@@ -130,7 +130,7 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public function moveMail( required string newFolder, string messageNumber, string uid, string folder ){
+	public function moveMail( required connection, required string newFolder, string messageNumber, string uid, string folder ){
 
 		var objFolder = getFolder( arguments.folder );
 		var objNewFolder = getFolder( arguments.newFolder );
@@ -147,11 +147,10 @@ component output="false" accessors="true" singleton {
 		if (arraylen(messages) and !isNull(messages[1])) {
 			objFolder.copyMessages( messages, objNewFolder );
 
-			if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
-				delete( folder=arguments.folder, uid=arguments.uid );
-			else
-				delete( folder=arguments.folder, messageNumber=arguments.messageNumber );
-		}
+		if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
+			delete( connection=attributes.connection, folder=arguments.folder, uid=arguments.uid );
+		else
+			delete( connection=attributes.connection, folder=arguments.folder, messageNumber=arguments.messageNumber );
 
 		objFolder.close(true);
 
