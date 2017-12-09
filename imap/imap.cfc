@@ -134,12 +134,14 @@ component output="false" accessors="true" singleton {
 		else
 			throw "uid and messageNumber are empty."
 
-		objFolder.copyMessages( messages, objNewFolder );
+		if (arraylen(messages) and !isNull(messages[1])) {
+			objFolder.copyMessages( messages, objNewFolder );
 
-		if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
-			delete( folder=arguments.folder, uid=arguments.uid );
-		else
-			delete( folder=arguments.folder, messageNumber=arguments.messageNumber );
+			if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
+				delete( folder=arguments.folder, uid=arguments.uid );
+			else
+				delete( folder=arguments.folder, messageNumber=arguments.messageNumber );
+		}
 
 		objFolder.close(true);
 
