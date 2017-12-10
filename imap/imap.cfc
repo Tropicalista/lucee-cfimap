@@ -41,7 +41,7 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	public function getAll( required connection, string folder = "INBOX", startRow = 1, maxRows, uid, messageNumber ){
+	public function getAll( required connection, string folder = "INBOX", startRow = 1, maxRows, uid, messageNumber, attachmentPath ){
 
 		var list = getMessages( arguments, true );
 		return list;
@@ -220,7 +220,7 @@ component output="false" accessors="true" singleton {
 
 	}
 
-	private function createQuery( required messages, required string columns, required boolean all=false ){
+	private function createQuery( required messages, required string columns, required boolean all=false, attachmentPath = "" ){
 
 		var flag = CreateObject("Java", "javax.mail.Flags$Flag");
 		var recipient = CreateObject("Java", "javax.mail.Message$RecipientType");
@@ -266,6 +266,8 @@ component output="false" accessors="true" singleton {
 			querySetCell( list, "to", getRecipients(messages[index]) );
 			querySetCell( list, "uid", messages[index].getFolder().getUID( messages[index] ) );
 			if( arguments.all ) querySetCell( list, "user", messages[index].isSet(flag.USER) );
+			// Download Attachment
+			if( arguments.all AND len( arguments.attachmentPath ) ) downloadAttachment( messages[index], arguments.attachmentPath );
 		}
 
 		return list;
@@ -335,7 +337,7 @@ component output="false" accessors="true" singleton {
 
     public any function getMessages( struct attr, boolean getAll = false ) {
 
-    		var messages = [];
+    	var messages = [];
 		var columns = "answered, cc, deleted, draft, flagged, from, header, lines, messageid, 
 		messagenumber, recent, replyto, rxddate, seen, sentDate, size, subject, to, uid";
 		var objFolder = getFolder( arguments.attr.connection, arguments.attr.folder );
@@ -355,11 +357,11 @@ component output="false" accessors="true" singleton {
 			columns = ListAppend( columns, "attachmentfiles, attachments, body, htmlbody, textbody, user", "," );
 		}
 
-		var list = createQuery( messages, columns, arguments.getAll )
+		var list = createQuery( messages, columns, arguments.getAll, arguments.attr.attachmentPath )
 
 		objFolder.close( false );
 
-    		return list;
+		return list;
 	}
     
 	private function getRecipients( required message ){
@@ -371,6 +373,49 @@ component output="false" accessors="true" singleton {
 		});
 
 		return arrayToList(allRecipients);
+	}
+
+	private function downloadAttachment( message, path ){
+
+		if( !hasAttachments(message) ){
+			return "";
+		}
+
+		if( FindNoCase( 'multipart', arguments.message.getContentType() ) ) {
+
+			var multiPart = arguments.message.getContent();
+
+			for ( var i=0; i < multiPart.getCount(); i++ ) {
+
+				var bodyPart = multiPart.getBodyPart( i );
+
+				if( len( bodyPart.getDisposition() ) ){
+
+					inputStream = bodyPart.getInputStream();
+					outStream = createObject("java","java.io.ByteArrayOutputStream").init();
+
+					// create byte array. read up to the first
+					// 1024 bytes (or however many) into the array 
+					byteClass = createObject("java", "java.lang.Byte").TYPE;
+					byteArray = createObject("java","java.lang.reflect.Array").newInstance(byteClass, javacast("int", 1024));
+					length = inputStream.read(byteArray);
+
+					// if there is any data to read
+					offset = 0;
+					while ( length GT 0) {
+					  outStream.write( byteArray, offset, length );
+					  length = inputStream.read( byteArray );
+					}
+
+					outStream.close();
+					inputStream.close();
+
+					fileWrite( arguments.path & '/' & bodyPart.getFileName(), outStream.toByteArray() );
+				};
+
+			}
+
+		}
 	}
 
 }

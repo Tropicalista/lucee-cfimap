@@ -232,7 +232,8 @@ component output="false" displayname="cfimap"  {
 					arguments.attributes.startRow ?: "",
 					arguments.attributes.maxRow ?: "",
 					arguments.attributes.uid ?: "",
-					arguments.attributes.messageNumber ?: ""
+					arguments.attributes.messageNumber ?: "",
+					arguments.attributes.attachmentPath ?: ""
 				);
 				break;
 
