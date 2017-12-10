@@ -13,7 +13,7 @@
 - MarkRead
 - MoveMail
 - Delete
-- GetAll ( work in progress )
+- GetAll
 
 
 ## Installation
