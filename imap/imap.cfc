@@ -144,7 +144,7 @@ component output="false" accessors="true" singleton {
 		else
 			throw "uid and messageNumber are empty."
 
-		if (arraylen(messages) and !isNull(messages[1])) {
+		if (arraylen(messages) and !isNull(messages[1]))
 			objFolder.copyMessages( messages, objNewFolder );
 
 		if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
