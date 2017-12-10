@@ -324,7 +324,7 @@ component output="false" accessors="true" singleton {
 		return "";
 	}
 
-    	boolean function hasAttachments( msg ){
+    boolean function hasAttachments( msg ){
 		if ( msg.isMimeType("multipart/mixed") ){
 		    var mp = msg.getContent();
 		    if ( mp.getCount() > 1 ){
@@ -332,9 +332,9 @@ component output="false" accessors="true" singleton {
 			}
 		}
 		return false;
-    	}
+    }
 
-    	public any function getMessages( struct attr, boolean getAll = false ) {
+    public any function getMessages( struct attr, boolean getAll = false ) {
 
     		var messages = [];
 		var columns = "answered, cc, deleted, draft, flagged, from, header, lines, messageid, 
@@ -362,7 +362,5 @@ component output="false" accessors="true" singleton {
 
     		return list;
 	}
-    
-}
     
 }
