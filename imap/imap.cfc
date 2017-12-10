@@ -263,7 +263,7 @@ component output="false" accessors="true" singleton {
 			querySetCell( list, "size", messages[index].getSize() );
 			querySetCell( list, "subject", messages[index].getSubject() );
 			if( arguments.all ) querySetCell( list, "textbody", textbody );
-			querySetCell( list, "to", IsArray( isNull(to) ? "": to ) ? ArrayToList(to) : "" );
+			querySetCell( list, "to", getRecipients(messages[index]) );
 			querySetCell( list, "uid", messages[index].getFolder().getUID( messages[index] ) );
 			if( arguments.all ) querySetCell( list, "user", messages[index].isSet(flag.USER) );
 		}
@@ -362,4 +362,15 @@ component output="false" accessors="true" singleton {
     		return list;
 	}
     
+	private function getRecipients( required message ){
+		var recipients = message.getAllRecipients();
+		if( isNull( recipients ) )
+			return "";
+		var allRecipients = arrayMap(recipients,function(item,index,arr){
+		    return item.toString();
+		});
+
+		return arrayToList(allRecipients);
+	}
+
 }
