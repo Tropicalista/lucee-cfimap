@@ -132,8 +132,8 @@ component output="false" accessors="true" singleton {
 
 	public function moveMail( required connection, required string newFolder, string messageNumber, string uid, string folder ){
 
-		var objFolder = getFolder( arguments.folder );
-		var objNewFolder = getFolder( arguments.newFolder );
+		var objFolder = getFolder( arguments.connection, arguments.folder );
+		var objNewFolder = getFolder( arguments.connection, arguments.newFolder );
 		var messages = "";
 
 		objFolder.open( objFolder.READ_WRITE );
@@ -148,9 +148,9 @@ component output="false" accessors="true" singleton {
 			objFolder.copyMessages( messages, objNewFolder );
 
 		if (structKeyExists(arguments, "uid") and listlen(arguments.uid))
-			delete( connection=attributes.connection, folder=arguments.folder, uid=arguments.uid );
+			delete( connection=arguments.connection, folder=arguments.folder, uid=arguments.uid );
 		else
-			delete( connection=attributes.connection, folder=arguments.folder, messageNumber=arguments.messageNumber );
+			delete( connection=arguments.connection, folder=arguments.folder, messageNumber=arguments.messageNumber );
 
 		objFolder.close(true);
 

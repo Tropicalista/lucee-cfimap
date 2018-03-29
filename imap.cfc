@@ -197,7 +197,7 @@ component output="false" displayname="cfimap"  {
 				){
 					throw( type="application", message="Attribute validation error", detail="It has an invalid attribute combination." );
 				}
-				variables.imap.movemail( arguments.caller[arguments.attributes.connection], arguments.attributes.newFolder, arguments.attributes.messageNumber, arguments.attributes.folder );
+				variables.imap.movemail( arguments.caller[arguments.attributes.connection], arguments.attributes.newFolder, arguments.attributes.messageNumber, arguments.attributes.uid, arguments.attributes.folder );
 				break;
 
 			case "getheaderonly":
