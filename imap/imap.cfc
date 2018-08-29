@@ -34,7 +34,7 @@ component output="false" accessors="true" singleton {
 		arguments.connection.close();
 	}
 
-	public function getHeaderOnly( required string connection, string folder = "INBOX", startRow = 1, maxRows, uid, messageNumber ){
+	public function getHeaderOnly( required string connection, string folder = "INBOX", startRow = 1, maxRows, uid, messageNumber, attachmentPath="" ){
 
 		var list = getMessages(arguments);
 		return list;
@@ -347,7 +347,7 @@ component output="false" accessors="true" singleton {
 			var messages = objFolder.getMessagesByUID( listToArray(arguments.attr.uid) );
 		}elseif( structKeyExists( arguments.attr, "messageNumber")  AND arguments.attr.messageNumber Neq ""){
 			var messages = objFolder.getMessage( arguments.attr.messageNumber );
-		}elseif( structKeyExists( arguments.attr, "maxRows") AND arguments.attr.maxrows Neq ""){
+		}elseif( structKeyExists( arguments.attr, "maxRows") AND arguments.attr.maxRows Neq ""){
 			var messages = objFolder.getMessages( arguments.attr.startRow, arguments.attr.startRow + arguments.attr.maxRows - 1 );
 		}else{
 			var messages = objFolder.getMessages();

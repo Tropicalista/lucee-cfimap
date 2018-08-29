@@ -19,3 +19,13 @@
 ## Installation
 - Save to Lucee context directory ("context/library/tag")
 - you will need to restart Lucee when you have added these files (and after editing a tag)
+
+## As custom tag
+
+If you want use this as custom tag, import in your project 
+
+`	this.customTagPaths = ["/custom_tag_import"];`
+
+and then invoke like this:
+
+`<cf_imap name="myimap">`
